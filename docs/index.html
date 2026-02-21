@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8" />
-<title>Canvas Test</title>
+  <meta charset="UTF-8">
+  <title>AKI Lab</title>
 </head>
-<body>
-<h2>四国DEMテスト</h2>
+<body style="background:black; color:lime; font-family:monospace; text-align:center; padding-top:100px;">
 
-<canvas id="c" width="800" height="600"></canvas>
+  <h1>🌍 AKI WEB 実験室</h1>
+  <p>GitHub Pages 動作テスト成功</p>
 
-<script>
-const canvas = document.getElementById("c");
-const ctx = canvas.getContext("2d");
+  <button onclick="playTone()">音を鳴らす</button>
 
-ctx.fillStyle = "blue";
-ctx.fillRect(100,100,200,200);
-
-ctx.fillStyle = "red";
-ctx.fillRect(300,200,150,150);
-
-document.body.innerHTML += "<p>JSは動いています</p>";
-</script>
+  <script>
+    function playTone() {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = 220;
+      osc.connect(ctx.destination);
+      osc.start();
+      setTimeout(() => osc.stop(), 500);
+    }
+  </script>
 
 </body>
 </html>
