@@ -2,25 +2,34 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>AKI Lab</title>
+  <title>AKI Sound Lab</title>
 </head>
 <body style="background:black; color:lime; font-family:monospace; text-align:center; padding-top:100px;">
 
-  <h1>🌍 AKI WEB 実験室</h1>
-  <p>GitHub Pages 動作テスト成功</p>
-
-  <button onclick="playTone()">音を鳴らす</button>
+  <h1>🌍 四国EDM 実験</h1>
+  <p>クリック位置で音が変わる</p>
 
   <script>
-    function playTone() {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    document.body.addEventListener("click", (e) => {
       const osc = ctx.createOscillator();
-      osc.type = "sine";
-      osc.frequency.value = 220;
-      osc.connect(ctx.destination);
+      const gain = ctx.createGain();
+
+      // 画面の横位置を周波数に変換
+      const freq = 100 + (e.clientX / window.innerWidth) * 800;
+
+      osc.type = "sawtooth";
+      osc.frequency.value = freq;
+
+      gain.gain.value = 0.1;
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
       osc.start();
-      setTimeout(() => osc.stop(), 500);
-    }
+      setTimeout(() => osc.stop(), 200);
+    });
   </script>
 
 </body>
