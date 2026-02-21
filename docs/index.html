@@ -1,64 +1,87 @@
-const canvas = document.getElementById('mandalaCanvas');
-const ctx = canvas.getContext('2d');
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Lissajous Mandala</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #050505;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
 
-let width, height, centerX, centerY;
-let angle = 0;
+<canvas id="mandalaCanvas"></canvas>
 
-function resize() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-    centerX = width / 2;
-    centerY = height / 2;
-}
+<script>
+    const canvas = document.getElementById('mandalaCanvas');
+    const ctx = canvas.getContext('2d');
 
-window.addEventListener('resize', resize);
-resize();
+    let width, height, centerX, centerY;
+    let angle = 0;
 
-function drawMandala() {
-    // 画面を少しずつ暗くして残像を作る
-    ctx.fillStyle = 'rgba(5, 5, 5, 0.1)';
-    ctx.fillRect(0, 0, width, height);
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        centerX = width / 2;
+        centerY = height / 2;
+    }
 
-    const petals = 8; // 対称軸の数
+    window.addEventListener('resize', resize);
+    resize();
 
-    ctx.save();
-    ctx.translate(centerX, centerY);
+    function drawMandala() {
+        // 背景を薄く塗りつぶして残像を作る
+        ctx.fillStyle = 'rgba(5, 5, 5, 0.1)';
+        ctx.fillRect(0, 0, width, height);
 
-    for (let i = 0; i < petals; i++) {
+        const petals = 8; // 対称軸の数
+
         ctx.save();
-        ctx.rotate((Math.PI * 2 / petals) * i);
-        
-        // リサージュ図形を描画
-        drawLissajous(angle, i);
-        
+        ctx.translate(centerX, centerY);
+
+        for (let i = 0; i < petals; i++) {
+            ctx.save();
+            ctx.rotate((Math.PI * 2 / petals) * i);
+            
+            // --- リサージュ図形の描画処理 ---
+            ctx.beginPath();
+            ctx.strokeStyle = `hsla(${indexToHue(i, angle)}, 80%, 60%, 0.6)`;
+            ctx.lineWidth = 1.5;
+
+            const a = 3; // 横の周波数
+            const b = 2; // 縦の周波数
+            const size = 150; // 図形の大きさ
+
+            for (let j = 0; j <= Math.PI * 2; j += 0.05) {
+                const x = Math.sin(a * j + angle) * size;
+                const y = Math.sin(b * j) * size;
+                if (j === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            // ----------------------------
+            
+            ctx.restore();
+        }
+
         ctx.restore();
+        angle += 0.02; 
+        requestAnimationFrame(drawMandala);
     }
 
-    ctx.restore();
-    angle += 0.02; // アニメーションの速度
-    requestAnimationFrame(drawMandala);
-}
-
-function drawLissajous(t, index) {
-    ctx.beginPath();
-    // 虹色に変化させる
-    ctx.strokeStyle = `hsla(${index * 45 + t * 50}, 80%, 60%, 0.6)`;
-    ctx.lineWidth = 1.5;
-
-    // リサージュ図形のパラメータ
-    const a = 3; // 横の周波数
-    const b = 2; // 縦の周波数
-    const size = 150; // 図形の大きさ
-
-    for (let i = 0; i <= Math.PI * 2; i += 0.1) {
-        // リサージュの公式: x = sin(at + δ), y = sin(bt)
-        const x = Math.sin(a * i + t) * size;
-        const y = Math.sin(b * i) * size;
-        
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+    function indexToHue(i, a) {
+        return i * 45 + a * 50;
     }
-    ctx.stroke();
-}
 
-drawMandala();
+    drawMandala();
+</script>
+</body>
+</html>
+
