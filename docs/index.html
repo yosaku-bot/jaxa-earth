@@ -1,87 +1,874 @@
 <!DOCTYPE html>
+
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>Lissajous Mandala</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #050505;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TERRAIN DRONE</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne+Mono&family=Syne:wght@400;700;800&display=swap');
+
+:root {
+–bg: #050810;
+–surface: #090e1c;
+–border: #151f38;
+–accent: #00e5ff;
+–accent2: #7c3aed;
+–accent3: #10b981;
+–text: #c8d6e5;
+–muted: #3a4a6a;
+}
+
+- { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘Syne’, sans-serif;
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image:
+linear-gradient(rgba(21,31,56,0.4) 1px, transparent 1px),
+linear-gradient(90deg, rgba(21,31,56,0.4) 1px, transparent 1px);
+background-size: 48px 48px;
+pointer-events: none;
+}
+
+.wrap {
+max-width: 900px;
+margin: 0 auto;
+padding: 36px 20px 48px;
+position: relative;
+}
+
+header { text-align: center; margin-bottom: 40px; }
+
+.logo {
+font-size: clamp(2.2rem, 7vw, 5rem);
+font-weight: 800;
+letter-spacing: -0.03em;
+line-height: 1;
+background: linear-gradient(130deg, #00e5ff 0%, #7c3aed 55%, #10b981 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+}
+
+.tagline {
+font-family: ‘Syne Mono’, monospace;
+font-size: 0.65rem;
+letter-spacing: 0.35em;
+color: var(–muted);
+text-transform: uppercase;
+margin-top: 8px;
+}
+
+.tabs {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+margin-bottom: 28px;
+}
+
+.tab {
+background: var(–surface);
+border: 1px solid var(–border);
+color: var(–muted);
+font-family: ‘Syne’, sans-serif;
+font-size: 1rem;
+font-weight: 700;
+padding: 20px;
+cursor: pointer;
+transition: all 0.18s;
+text-align: left;
+position: relative;
+}
+
+.tab .rname { display: block; font-size: 1.1rem; }
+.tab .rsub {
+font-family: ‘Syne Mono’, monospace;
+font-size: 0.6rem;
+letter-spacing: 0.15em;
+color: var(–muted);
+margin-top: 4px;
+display: block;
+text-transform: uppercase;
+}
+
+.tab:hover { border-color: var(–accent); color: var(–text); }
+.tab.active { border-color: var(–accent); color: var(–accent); background: rgba(0,229,255,0.05); }
+.tab.active .rsub { color: rgba(0,229,255,0.4); }
+
+.tab .coord {
+position: absolute;
+top: 8px; right: 10px;
+font-family: ‘Syne Mono’, monospace;
+font-size: 0.52rem;
+color: var(–muted);
+letter-spacing: 0.08em;
+}
+
+.tab.active .coord { color: rgba(0,229,255,0.5); }
+
+.visuals {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+margin-bottom: 8px;
+}
+
+@media(max-width:560px){ .visuals{ grid-template-columns: 1fr; } }
+
+.panel {
+background: var(–surface);
+border: 1px solid var(–border);
+position: relative;
+overflow: hidden;
+}
+
+.panel-hd {
+font-family: ‘Syne Mono’, monospace;
+font-size: 0.6rem;
+letter-spacing: 0.22em;
+color: var(–muted);
+padding: 8px 12px;
+border-bottom: 1px solid var(–border);
+text-transform: uppercase;
+display: flex;
+justify-content: space-between;
+}
+
+.panel-hd em { color: var(–accent); font-style: normal; }
+
+canvas { display: block; width: 100%; }
+#terrainCanvas { height: 160px; image-rendering: pixelated; }
+#waveCanvas    { height: 160px; background: #030608; }
+#specCanvas    { height: 70px;  background: #030608; }
+
+.stats {
+display: grid;
+grid-template-columns: repeat(4,1fr);
+gap: 1px;
+background: var(–border);
+border: 1px solid var(–border);
+margin-bottom: 8px;
+}
+
+.stat {
+background: var(–surface);
+padding: 12px 8px;
+text-align: center;
+}
+
+.stat .n {
+font-family: ‘Syne Mono’, monospace;
+font-size: 1.3rem;
+font-weight: 700;
+color: var(–accent);
+display: block;
+line-height: 1;
+}
+
+.stat .l {
+font-size: 0.55rem;
+letter-spacing: 0.15em;
+color: var(–muted);
+text-transform: uppercase;
+margin-top: 5px;
+}
+
+.spec-panel {
+background: var(–surface);
+border: 1px solid var(–border);
+margin-bottom: 16px;
+}
+
+.controls {
+background: var(–surface);
+border: 1px solid var(–border);
+padding: 20px;
+margin-bottom: 16px;
+}
+
+.ctrl-row {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+gap: 16px;
+}
+
+.ctrl label {
+font-family: ‘Syne Mono’, monospace;
+font-size: 0.6rem;
+letter-spacing: 0.18em;
+color: var(–muted);
+text-transform: uppercase;
+display: flex;
+justify-content: space-between;
+margin-bottom: 8px;
+}
+
+.ctrl label em { color: var(–accent); font-style: normal; }
+
+input[type=range] {
+-webkit-appearance: none;
+width: 100%;
+height: 2px;
+background: var(–border);
+outline: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+-webkit-appearance: none;
+width: 12px; height: 12px;
+background: var(–accent);
+border-radius: 0;
+cursor: pointer;
+}
+
+select {
+background: var(–bg);
+border: 1px solid var(–border);
+color: var(–text);
+font-family: ‘Syne Mono’, monospace;
+font-size: 0.7rem;
+padding: 6px 8px;
+width: 100%;
+outline: none;
+}
+
+.playbar {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.btn {
+font-family: ‘Syne’, sans-serif;
+font-size: 0.8rem;
+font-weight: 700;
+letter-spacing: 0.12em;
+text-transform: uppercase;
+padding: 14px 28px;
+border: 1px solid;
+background: transparent;
+cursor: pointer;
+transition: all 0.15s;
+flex-shrink: 0;
+}
+
+.btn-play { border-color: var(–accent); color: var(–accent); }
+.btn-play:hover, .btn-play.on { background: rgba(0,229,255,0.1); box-shadow: 0 0 16px rgba(0,229,255,0.15); }
+
+.status {
+font-family: ‘Syne Mono’, monospace;
+font-size: 0.65rem;
+letter-spacing: 0.08em;
+color: var(–muted);
+}
+
+.status.playing { color: var(–accent3); }
+
+footer {
+font-family: ‘Syne Mono’, monospace;
+font-size: 0.55rem;
+color: var(–muted);
+letter-spacing: 0.12em;
+text-align: center;
+margin-top: 32px;
+padding-top: 14px;
+border-top: 1px solid var(–border);
+}
+</style>
+
 </head>
 <body>
+<div class="wrap">
 
-<canvas id="mandalaCanvas"></canvas>
+  <header>
+    <div class="logo">TERRAIN DRONE</div>
+    <div class="tagline">地形標高データ → ドローン音楽変換システム</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-shikoku" onclick="selectRegion('shikoku')">
+      <span class="coord">33°N–34°N / 132°E–135°E</span>
+      <span class="rname">四国</span>
+      <span class="rsub">石鎚山 1982m · 剣山 1955m</span>
+    </button>
+    <button class="tab" id="tab-hokuriku" onclick="selectRegion('hokuriku')">
+      <span class="coord">36°N–37°N / 136°E–138°E</span>
+      <span class="rname">北陸</span>
+      <span class="rsub">立山 3015m · 白山 2702m</span>
+    </button>
+  </div>
+
+  <div class="visuals">
+    <div class="panel">
+      <div class="panel-hd">標高マップ &mdash; <em id="regionLabel">四国</em></div>
+      <canvas id="terrainCanvas" height="160"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-hd">波形</div>
+      <canvas id="waveCanvas" height="160"></canvas>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><span class="n" id="sMin">—</span><span class="l">最低 m</span></div>
+    <div class="stat"><span class="n" id="sMax">—</span><span class="l">最高 m</span></div>
+    <div class="stat"><span class="n" id="sAvg">—</span><span class="l">平均 m</span></div>
+    <div class="stat"><span class="n" id="sVoices">0</span><span class="l">音数</span></div>
+  </div>
+
+  <div class="spec-panel">
+    <div class="panel-hd">周波数スペクトラム</div>
+    <canvas id="specCanvas" height="70"></canvas>
+  </div>
+
+  <div class="controls">
+    <div class="ctrl-row">
+      <div class="ctrl">
+        <label>音声密度 <em id="vDensity">16</em></label>
+        <input type="range" id="density" min="4" max="32" value="16">
+      </div>
+      <div class="ctrl">
+        <label>ボリューム <em id="vVol">70</em>%</label>
+        <input type="range" id="volume" min="0" max="100" value="70">
+      </div>
+      <div class="ctrl">
+        <label>リバーブ <em id="vReverb">65</em>%</label>
+        <input type="range" id="reverb" min="0" max="100" value="65">
+      </div>
+      <div class="ctrl">
+        <label>揺らぎ <em id="vMod">25</em></label>
+        <input type="range" id="mod" min="1" max="80" value="25">
+      </div>
+      <div class="ctrl">
+        <label>スケール</label>
+        <select id="scale">
+          <option value="just">純正律ドローン</option>
+          <option value="penta">ペンタトニック</option>
+          <option value="whole">ホールトーン</option>
+          <option value="chrom">クロマティック</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <label>波形</label>
+        <select id="wave">
+          <option value="sawtooth">ノコギリ波</option>
+          <option value="sine">サイン波</option>
+          <option value="triangle">三角波</option>
+          <option value="square">矩形波</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="playbar">
+    <button class="btn btn-play" id="playBtn">▶ 再生</button>
+    <span class="status" id="status">エリアを選んで再生してください</span>
+  </div>
+
+  <footer>地形特徴: 国土地理院参考データ (四国山地 / 北陸アルプス) — Web Audio API — TERRAIN DRONE v1.0</footer>
+</div>
 
 <script>
-    const canvas = document.getElementById('mandalaCanvas');
-    const ctx = canvas.getContext('2d');
+// ════════════════════════════════════════════════════════
+//  地形データ生成
+//  四国: 中央山地(石鎚・剣山系), 讃岐平野, 高知平野
+//  北陸: 立山・白山アルプス, 能登半島, 富山・金沢平野
+// ════════════════════════════════════════════════════════
 
-    let width, height, centerX, centerY;
-    let angle = 0;
+function pseudoNoise(x, y, seed = 1) {
+  const s = Math.sin(x * 127.1 * seed + y * 311.7) * 43758.5453;
+  return s - Math.floor(s);
+}
 
-    function resize() {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-        centerX = width / 2;
-        centerY = height / 2;
+function smoothNoise(x, y, scale, seed) {
+  const ix = x * scale, iy = y * scale;
+  const fx = ix - Math.floor(ix), fy = iy - Math.floor(iy);
+  const a = pseudoNoise(Math.floor(ix),   Math.floor(iy),   seed);
+  const b = pseudoNoise(Math.floor(ix)+1, Math.floor(iy),   seed);
+  const c = pseudoNoise(Math.floor(ix),   Math.floor(iy)+1, seed);
+  const d = pseudoNoise(Math.floor(ix)+1, Math.floor(iy)+1, seed);
+  return a*(1-fx)*(1-fy) + b*fx*(1-fy) + c*(1-fx)*fy + d*fx*fy;
+}
+
+function fbm(x, y, octaves, seed) {
+  let v = 0, amp = 1, freq = 1, max = 0;
+  for (let i = 0; i < octaves; i++) {
+    v += smoothNoise(x, y, freq, seed + i * 100) * amp;
+    max += amp;
+    amp *= 0.5;
+    freq *= 2.1;
+  }
+  return v / max;
+}
+
+function gauss2(x, y, cx, cy, rx, ry) {
+  return Math.exp(-((x-cx)**2/rx**2 + (y-cy)**2/ry**2));
+}
+
+// ── 四国 ──────────────────────────────────────────────
+function generateShikoku() {
+  const W = 80, H = 40;
+  const data = [];
+
+  for (let iy = 0; iy < H; iy++) {
+    for (let ix = 0; ix < W; ix++) {
+      const nx = ix / (W - 1);  // 0=西(132E) 1=東(135E)
+      const ny = iy / (H - 1);  // 0=北(34N)  1=南(33N)
+
+      // 四国山地は南寄り稜線
+      const ridge = gauss2(nx, ny, 0.5, 0.45, 0.6, 0.18) * 900;
+
+      // 石鎚山 (西部, やや北寄り)
+      const ishizuchi = gauss2(nx, ny, 0.22, 0.38, 0.10, 0.12) * 1982;
+      // 二ノ森・瓶ヶ森周辺
+      const ninomori  = gauss2(nx, ny, 0.28, 0.40, 0.08, 0.10) * 1929;
+      // 剣山 (中東部)
+      const tsurugi   = gauss2(nx, ny, 0.68, 0.50, 0.09, 0.11) * 1955;
+      // 三嶺
+      const miune     = gauss2(nx, ny, 0.60, 0.48, 0.07, 0.09) * 1894;
+      // 東部の山 (高丸山ほか)
+      const east      = gauss2(nx, ny, 0.88, 0.52, 0.08, 0.10) * 1439;
+
+      // 讃岐平野 (北西, 低地)
+      const sanuki = ny < 0.28 ? (1 - ny/0.28) * 80 : 0;
+      // 高知平野 (南, 低地)
+      const kochi  = ny > 0.72 ? (ny-0.72)/0.28 * 60 : 0;
+      // 宇和海・南西海岸
+      const uwaSea = (nx < 0.12 && ny > 0.4) ? 0 : 0;
+
+      // ノイズで質感を付加
+      const n = fbm(nx * 6, ny * 6, 5, 1) * 280
+              + fbm(nx * 14, ny * 14, 3, 42) * 90;
+
+      let elev = Math.max(0,
+        ridge + ishizuchi + ninomori + tsurugi + miune + east + n
+        - sanuki * 3 - kochi * 2
+      );
+
+      // 四方の海岸
+      const edgeX = Math.min(nx, 1-nx) * 8;
+      const edgeY = Math.min(ny, 1-ny) * 8;
+      const coast = Math.min(1, Math.min(edgeX, edgeY));
+      elev *= coast;
+
+      data.push(Math.round(Math.min(1982, Math.max(0, elev))));
     }
+  }
+  return { data, W, H, name: '四国', desc: '石鎚山 · 剣山系', maxDisplay: 1982 };
+}
 
-    window.addEventListener('resize', resize);
-    resize();
+// ── 北陸 ──────────────────────────────────────────────
+function generateHokuriku() {
+  const W = 80, H = 40;
+  const data = [];
 
-    function drawMandala() {
-        // 背景を薄く塗りつぶして残像を作る
-        ctx.fillStyle = 'rgba(5, 5, 5, 0.1)';
-        ctx.fillRect(0, 0, width, height);
+  for (let iy = 0; iy < H; iy++) {
+    for (let ix = 0; ix < W; ix++) {
+      const nx = ix / (W - 1);  // 0=西(136E=金沢) 1=東(138E=富山東)
+      const ny = iy / (H - 1);  // 0=北(日本海) 1=南(内陸)
 
-        const petals = 8; // 対称軸の数
+      // 立山・剱岳 (東部, 南寄り)
+      const tateyama = gauss2(nx, ny, 0.82, 0.72, 0.08, 0.09) * 3015;
+      const tsurugi  = gauss2(nx, ny, 0.87, 0.68, 0.07, 0.08) * 2999;
+      // 薬師岳・黒部五郎
+      const yakushi  = gauss2(nx, ny, 0.75, 0.78, 0.07, 0.08) * 2926;
 
-        ctx.save();
-        ctx.translate(centerX, centerY);
+      // 白山 (中央やや西)
+      const hakusan  = gauss2(nx, ny, 0.42, 0.80, 0.09, 0.10) * 2702;
+      // 白山周辺稜線
+      const hakuRidge= gauss2(nx, ny, 0.38, 0.75, 0.12, 0.10) * 1900;
 
-        for (let i = 0; i < petals; i++) {
-            ctx.save();
-            ctx.rotate((Math.PI * 2 / petals) * i);
-            
-            // --- リサージュ図形の描画処理 ---
-            ctx.beginPath();
-            ctx.strokeStyle = `hsla(${indexToHue(i, angle)}, 80%, 60%, 0.6)`;
-            ctx.lineWidth = 1.5;
+      // 北アルプス全体稜線
+      const alpsRidge = gauss2(nx, ny, 0.78, 0.72, 0.25, 0.14) * 1400
+                      + gauss2(nx, ny, 0.5,  0.78, 0.40, 0.12) * 800;
 
-            const a = 3; // 横の周波数
-            const b = 2; // 縦の周波数
-            const size = 150; // 図形の大きさ
+      // 能登半島 (北西, 低丘陵)
+      const noto = gauss2(nx, ny, 0.10, 0.18, 0.14, 0.20) * 370;
 
-            for (let j = 0; j <= Math.PI * 2; j += 0.05) {
-                const x = Math.sin(a * j + angle) * size;
-                const y = Math.sin(b * j) * size;
-                if (j === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-            // ----------------------------
-            
-            ctx.restore();
-        }
+      // 富山平野 (中央北側)
+      const toyama = (nx > 0.55 && nx < 0.85 && ny < 0.30) ? 15 : 0;
+      // 金沢・加賀平野
+      const kanazawa = (nx > 0.20 && nx < 0.55 && ny < 0.35) ? 20 : 0;
 
-        ctx.restore();
-        angle += 0.02; 
-        requestAnimationFrame(drawMandala);
+      // ノイズ
+      const n = fbm(nx * 6, ny * 6, 5, 7) * 300
+              + fbm(nx * 15, ny * 15, 3, 88) * 100;
+
+      let elev = Math.max(0,
+        tateyama + tsurugi + yakushi + hakusan + hakuRidge + alpsRidge
+        + noto + n + toyama + kanazawa
+      );
+
+      // 日本海側 (北) は低く
+      if (ny < 0.10) elev *= ny / 0.10 * 0.3;
+      // 海岸エッジ
+      const edgeX = Math.min(nx, 1-nx) * 8;
+      const edgeN = Math.min(1, ny * 12);
+      elev *= Math.min(1, Math.min(edgeX, edgeN));
+
+      data.push(Math.round(Math.min(3015, Math.max(0, elev))));
     }
+  }
+  return { data, W, H, name: '北陸', desc: '立山 · 白山連峰', maxDisplay: 3015 };
+}
 
-    function indexToHue(i, a) {
-        return i * 45 + a * 50;
+// 起動時に生成
+const REGIONS = {
+  shikoku:  generateShikoku(),
+  hokuriku: generateHokuriku(),
+};
+
+let current = REGIONS.shikoku;
+let currentKey = 'shikoku';
+
+// ════════════════════════════════════════════════════════
+//  エリア選択
+// ════════════════════════════════════════════════════════
+function selectRegion(key) {
+  currentKey = key;
+  current = REGIONS[key];
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + key).classList.add('active');
+  document.getElementById('regionLabel').textContent = current.name;
+  renderTerrain();
+  updateStats();
+  if (isPlaying) {
+    stopInstant();
+    setTimeout(startDrone, 200);
+    document.getElementById('status').textContent = current.name + ' — ' + current.desc + ' を演奏中';
+    document.getElementById('status').className = 'status playing';
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  地形描画
+// ════════════════════════════════════════════════════════
+function jet(t) {
+  t = Math.max(0, Math.min(1, t));
+  return [
+    Math.min(1, Math.max(0, 1.5 - Math.abs(4*t - 3))) * 255 | 0,
+    Math.min(1, Math.max(0, 1.5 - Math.abs(4*t - 2))) * 255 | 0,
+    Math.min(1, Math.max(0, 1.5 - Math.abs(4*t - 1))) * 255 | 0,
+  ];
+}
+
+function renderTerrain() {
+  const cv = document.getElementById('terrainCanvas');
+  const ctx = cv.getContext('2d');
+  cv.width = cv.offsetWidth || 400;
+  cv.height = 160;
+  const W = cv.width, H = cv.height;
+  const { data, W: cols, H: rows, maxDisplay } = current;
+  const vals = data;
+  const minV = Math.min(...vals);
+  const maxV = Math.max(...vals);
+  const range = maxV - minV + 1;
+
+  const img = ctx.createImageData(W, H);
+  for (let py = 0; py < H; py++) {
+    for (let px = 0; px < W; px++) {
+      const col = Math.floor(px / W * cols);
+      const row = Math.floor(py / H * rows);
+      const v = vals[row * cols + col];
+      const [r, g, b] = jet((v - minV) / range);
+      const i = (py * W + px) * 4;
+      img.data[i] = r; img.data[i+1] = g; img.data[i+2] = b; img.data[i+3] = 255;
     }
+  }
+  ctx.putImageData(img, 0, 0);
 
-    drawMandala();
+  // 等高線ラベル
+  ctx.font = '9px monospace';
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  const contours = [500, 1000, 1500, 2000, 2500, 3000];
+  contours.forEach(c => {
+    if (c > maxV) return;
+    const t = (c - minV) / range;
+    const y = H - t * H;
+    ctx.fillText(c + 'm', 4, y - 2);
+  });
+}
+
+function updateStats() {
+  const vals = current.data;
+  const minV = Math.min(...vals);
+  const maxV = Math.max(...vals);
+  const avg  = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+  document.getElementById('sMin').textContent = minV;
+  document.getElementById('sMax').textContent = maxV;
+  document.getElementById('sAvg').textContent = avg;
+}
+
+// ════════════════════════════════════════════════════════
+//  Audio
+// ════════════════════════════════════════════════════════
+let actx, masterGain, convolver, dryGain, wetGain, analyser;
+let voices = [], isPlaying = false, rafId;
+
+const SCALES = {
+  just:  [1, 1.125, 1.25, 1.333, 1.5, 1.667, 1.875, 2],
+  penta: [1, 1.125, 1.265, 1.5,  1.687, 2],
+  whole: [1, 1.122, 1.260, 1.414, 1.587, 1.782, 2],
+  chrom: [1,1.059,1.122,1.189,1.260,1.335,1.414,1.498,1.587,1.682,1.782,1.888,2],
+};
+
+function makeIR(ctx) {
+  const len = ctx.sampleRate * 5;
+  const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = buf.getChannelData(c);
+    for (let i = 0; i < len; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 1.8));
+    }
+  }
+  return buf;
+}
+
+function initAudio() {
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = actx.createGain();
+  analyser   = actx.createAnalyser();
+  analyser.fftSize = 2048;
+  convolver  = actx.createConvolver();
+  convolver.buffer = makeIR(actx);
+  dryGain = actx.createGain();
+  wetGain = actx.createGain();
+  masterGain.connect(dryGain);
+  masterGain.connect(convolver);
+  convolver.connect(wetGain);
+  dryGain.connect(analyser);
+  wetGain.connect(analyser);
+  analyser.connect(actx.destination);
+  applyVolume(); applyReverb();
+}
+
+function applyVolume() {
+  if (masterGain) masterGain.gain.value = +document.getElementById('volume').value / 100;
+}
+
+function applyReverb() {
+  if (!dryGain) return;
+  const v = +document.getElementById('reverb').value / 100;
+  wetGain.gain.value = v;
+  dryGain.gain.value = 1 - v * 0.65;
+}
+
+function startDrone() {
+  if (!actx) initAudio();
+  if (actx.state === 'suspended') actx.resume();
+  stopInstant();
+
+  const vals      = current.data;
+  const minV      = Math.min(...vals);
+  const maxV      = Math.max(...vals);
+  const density   = +document.getElementById('density').value;
+  const scale     = SCALES[document.getElementById('scale').value];
+  const waveType  = document.getElementById('wave').value;
+  const modSpeed  = +document.getElementById('mod').value / 2000;
+  const range     = maxV - minV + 1;
+  const baseFreq  = 55;
+  const now       = actx.currentTime;
+
+  const step = Math.max(1, Math.floor(vals.length / density));
+  const samples = [];
+  for (let i = 0; i < vals.length && samples.length < density; i += step) {
+    samples.push(vals[i]);
+  }
+
+  samples.forEach((elev, si) => {
+    const t = (elev - minV) / range;
+    const octave = Math.floor(t * 2.5);
+    const degree = Math.floor(t * (scale.length - 1));
+    const baseF  = baseFreq * Math.pow(2, octave) * scale[degree];
+
+    [1, 2, 3, 5].forEach((h, hi) => {
+      const osc  = actx.createOscillator();
+      const gain = actx.createGain();
+      const pan  = actx.createStereoPanner();
+      const lfo  = actx.createOscillator();
+      const lfog = actx.createGain();
+
+      osc.type = waveType;
+      osc.frequency.value = baseF * h * (1 + (Math.random() - 0.5) * 0.005);
+
+      const vol = 0.1 / (hi + 1) / samples.length * 3.5;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(vol, now + 2.5 + si * 0.2);
+
+      lfo.frequency.value = 0.03 + Math.random() * modSpeed;
+      lfog.gain.value     = baseF * h * 0.003;
+      lfo.connect(lfog);
+      lfog.connect(osc.frequency);
+
+      pan.pan.value = ((si / samples.length) * 2 - 1) * 0.88;
+
+      osc.connect(gain);
+      gain.connect(pan);
+      pan.connect(masterGain);
+
+      osc.start(now);
+      lfo.start(now);
+      voices.push({ osc, gain, lfo });
+    });
+  });
+
+  document.getElementById('sVoices').textContent = voices.length;
+  isPlaying = true;
+  drawLoop();
+}
+
+function stopDrone() {
+  if (!actx) return;
+  const now = actx.currentTime;
+  voices.forEach(({ osc, gain, lfo }) => {
+    gain.gain.linearRampToValueAtTime(0, now + 1.2);
+    osc.stop(now + 1.3);
+    try { lfo.stop(now + 1.3); } catch(e) {}
+  });
+  voices = [];
+  document.getElementById('sVoices').textContent = 0;
+  isPlaying = false;
+  cancelAnimationFrame(rafId);
+}
+
+function stopInstant() {
+  voices.forEach(({ osc, lfo }) => {
+    try { osc.stop(); } catch(e) {}
+    try { lfo.stop(); } catch(e) {}
+  });
+  voices = [];
+}
+
+// ════════════════════════════════════════════════════════
+//  描画ループ
+// ════════════════════════════════════════════════════════
+function drawLoop() {
+  if (!isPlaying) return;
+  drawWave();
+  drawSpec();
+  rafId = requestAnimationFrame(drawLoop);
+}
+
+function drawWave() {
+  const cv = document.getElementById('waveCanvas');
+  const ctx = cv.getContext('2d');
+  const W = cv.width = cv.offsetWidth || 400;
+  const H = cv.height = 160;
+
+  ctx.fillStyle = '#030608';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = '#0c1526';
+  ctx.lineWidth = 1;
+  [0.25, 0.5, 0.75].forEach(f => {
+    ctx.beginPath(); ctx.moveTo(0, H*f); ctx.lineTo(W, H*f); ctx.stroke();
+  });
+
+  const buf = new Float32Array(analyser.frequencyBinCount);
+  analyser.getFloatTimeDomainData(buf);
+
+  ctx.beginPath();
+  ctx.strokeStyle = '#00e5ff';
+  ctx.lineWidth = 1.5;
+  ctx.shadowBlur = 12;
+  ctx.shadowColor = '#00e5ff';
+  const sw = W / buf.length;
+  for (let i = 0; i < buf.length; i++) {
+    const x = i * sw;
+    const y = (buf[i] * 0.5 + 0.5) * H;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+function drawSpec() {
+  const cv = document.getElementById('specCanvas');
+  const ctx = cv.getContext('2d');
+  const W = cv.width = cv.offsetWidth || 400;
+  const H = cv.height = 70;
+
+  ctx.fillStyle = '#030608';
+  ctx.fillRect(0, 0, W, H);
+
+  const buf = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(buf);
+
+  const bars = 72;
+  const bw = W / bars - 1;
+
+  for (let i = 0; i < bars; i++) {
+    const idx = Math.floor(i / bars * buf.length * 0.45);
+    const v = buf[idx] / 255;
+    const h = v * H;
+    const t = i / bars;
+    ctx.fillStyle = `rgb(${(0*(1-t)+124*t)|0},${(229*(1-t)+58*t)|0},${(255*(1-t)+237*t)|0})`;
+    ctx.fillRect(i * (bw + 1), H - h, bw, h);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  イベント
+// ════════════════════════════════════════════════════════
+document.getElementById('playBtn').addEventListener('click', function () {
+  if (isPlaying) {
+    stopDrone();
+    this.textContent = '▶ 再生';
+    this.classList.remove('on');
+    document.getElementById('status').textContent = '停止しました';
+    document.getElementById('status').className = 'status';
+  } else {
+    startDrone();
+    this.textContent = '■ 停止';
+    this.classList.add('on');
+    document.getElementById('status').textContent = current.name + ' — ' + current.desc + ' を演奏中';
+    document.getElementById('status').className = 'status playing';
+  }
+});
+
+document.getElementById('volume').addEventListener('input', function () {
+  document.getElementById('vVol').textContent = this.value;
+  applyVolume();
+});
+
+document.getElementById('reverb').addEventListener('input', function () {
+  document.getElementById('vReverb').textContent = this.value;
+  applyReverb();
+});
+
+document.getElementById('density').addEventListener('input', function () {
+  document.getElementById('vDensity').textContent = this.value;
+  if (isPlaying) { stopInstant(); startDrone(); }
+});
+
+document.getElementById('mod').addEventListener('input', function () {
+  document.getElementById('vMod').textContent = this.value;
+});
+
+document.getElementById('scale').addEventListener('change', function () {
+  if (isPlaying) { stopInstant(); startDrone(); }
+});
+
+document.getElementById('wave').addEventListener('change', function () {
+  if (isPlaying) { stopInstant(); startDrone(); }
+});
+
+window.addEventListener('resize', renderTerrain);
+
+// 初期化
+renderTerrain();
+updateStats();
 </script>
+
 </body>
 </html>
-
